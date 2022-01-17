@@ -32,8 +32,11 @@ def overridesScalaParserCombinators = Seq(
   dependencyOverrides ++= Dependencies.scalaParserCombinatorOverrides
 )
 
+// Update this variable to publish your own release
+val githubOwner = "CastleOne"
+
 def common: Seq[Setting[_]] = releaseSettings ++ bintraySettings ++ evictionSettings ++ Seq(
-  organization := "com.lightbend.lagom",
+  organization := githubOwner.toLowerCase,
   // Must be "Apache-2.0", because bintray requires that it is a license that it knows about
   licenses := Seq(("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0.html"))),
   homepage := Some(url("https://www.lagomframework.com/")),
@@ -434,7 +437,7 @@ lazy val root = (project in file("."))
   )
 
 def RuntimeLibPlugins = AutomateHeaderPlugin && Sonatype && PluginsAccessor.exclude(BintrayPlugin) && Unidoc
-def SbtPluginPlugins  = AutomateHeaderPlugin && BintrayPlugin && PluginsAccessor.exclude(Sonatype)
+def SbtPluginPlugins  = AutomateHeaderPlugin && PluginsAccessor.exclude(Sonatype)
 
 lazy val api = (project in file("service/core/api"))
   .settings(runtimeLibCommon: _*)
@@ -1241,6 +1244,7 @@ lazy val `sbt-plugin` = (project in file("dev") / "sbt-plugin")
   .settings(common: _*)
   .settings(mimaSettings())
   .settings(scriptedSettings: _*)
+  .disablePlugins(BintrayPlugin)
   .enablePlugins(SbtPluginPlugins, SbtPlugin)
   .settings(
     name := "lagom-sbt-plugin",
@@ -1306,14 +1310,18 @@ lazy val `sbt-plugin` = (project in file("dev") / "sbt-plugin")
       val () = (publishLocal in `sbt-scripted-library`).value
       val () = (publishLocal in LocalProject("sbt-scripted-tools")).value
     },
-    publishTo := {
-      val old = publishTo.value
-      if (isSnapshot.value) {
-        // Bintray doesn't support publishing snapshots, publish to Sonatype snapshots instead
-        Some(Opts.resolver.sonatypeSnapshots)
-      } else old
-    },
-    publishMavenStyle := isSnapshot.value
+//    publishTo := {
+//      val old = publishTo.value
+//      if (isSnapshot.value) {
+//        // Bintray doesn't support publishing snapshots, publish to Sonatype snapshots instead
+//        Some(Opts.resolver.sonatypeSnapshots)
+//      } else old
+//    },
+//    publishMavenStyle := isSnapshot.value,
+    externalResolvers += "GitHub castleone Apache Maven Packages" at s"https://maven.pkg.github.com/$githubOwner/lagom",
+    publishTo := Some("GitHub castleone Apache Maven Packages" at s"https://maven.pkg.github.com/$githubOwner/lagom"),
+    credentials += Credentials("GitHub Package Registry", "maven.pkg.github.com", "<user here>", "<Token here>"),
+    publishMavenStyle := true,
   )
   .dependsOn(`sbt-build-tool-support`)
 
