@@ -37,6 +37,10 @@ val githubOwner = "CastleOne"
 
 def common: Seq[Setting[_]] = releaseSettings ++ bintraySettings ++ evictionSettings ++ Seq(
   organization := githubOwner.toLowerCase,
+  externalResolvers += "GitHub castleone Apache Maven Packages" at s"https://maven.pkg.github.com/$githubOwner/lagom",
+  publishTo := Some("GitHub castleone Apache Maven Packages" at s"https://maven.pkg.github.com/$githubOwner/lagom"),
+  credentials += Credentials("GitHub Package Registry", "maven.pkg.github.com", "<user here>", "<Token here>"),
+  publishMavenStyle := true,
   // Must be "Apache-2.0", because bintray requires that it is a license that it knows about
   licenses := Seq(("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0.html"))),
   homepage := Some(url("https://www.lagomframework.com/")),
@@ -83,10 +87,10 @@ def common: Seq[Setting[_]] = releaseSettings ++ bintraySettings ++ evictionSett
 )
 
 def bintraySettings: Seq[Setting[_]] = Seq(
-  bintrayOrganization := Some("lagom"),
-  bintrayRepository := "sbt-plugin-releases",
-  bintrayPackage := "lagom-sbt-plugin",
-  bintrayReleaseOnPublish := false
+//  bintrayOrganization := Some("lagom"),
+//  bintrayRepository := "sbt-plugin-releases",
+//  bintrayPackage := "lagom-sbt-plugin",
+//  bintrayReleaseOnPublish := false
 )
 
 def releaseSettings: Seq[Setting[_]] = Seq(
@@ -146,7 +150,7 @@ def publishMavenStyleSettings: Seq[Setting[_]] = Seq(
 )
 
 def sonatypeSettings: Seq[Setting[_]] = Seq(
-  publishTo := sonatypePublishTo.value
+//  publishTo := sonatypePublishTo.value
 )
 
 def runtimeScalaSettings: Seq[Setting[_]] = Seq(
@@ -436,8 +440,8 @@ lazy val root = (project in file("."))
       .map(Project.projectToRef): _*
   )
 
-def RuntimeLibPlugins = AutomateHeaderPlugin && Sonatype && PluginsAccessor.exclude(BintrayPlugin) && Unidoc
-def SbtPluginPlugins  = AutomateHeaderPlugin && PluginsAccessor.exclude(Sonatype)
+def RuntimeLibPlugins = AutomateHeaderPlugin && PluginsAccessor.exclude(Sonatype) && PluginsAccessor.exclude(BintrayPlugin) && Unidoc
+def SbtPluginPlugins  = AutomateHeaderPlugin && PluginsAccessor.exclude(Sonatype) && PluginsAccessor.exclude(BintrayPlugin)
 
 lazy val api = (project in file("service/core/api"))
   .settings(runtimeLibCommon: _*)
@@ -1200,7 +1204,7 @@ lazy val `reloadable-server` = (project in file("dev") / "reloadable-server")
 
 lazy val `build-tool-support` = (project in file("dev") / "build-tool-support")
   .disablePlugins(BintrayPlugin)
-  .enablePlugins(AutomateHeaderPlugin && Sonatype)
+//  .enablePlugins(AutomateHeaderPlugin && Sonatype)
   .settings(sonatypeSettings: _*)
   .settings(common: _*)
   .settings(mimaSettings())
@@ -1223,8 +1227,8 @@ lazy val `build-tool-support` = (project in file("dev") / "build-tool-support")
 // https://github.com/playframework/playframework/blob/2.6.7/framework/build.sbt#L27-L40
 lazy val `sbt-build-tool-support` = (project in file("dev") / "build-tool-support")
   .disablePlugins(BintrayPlugin)
-  .enablePlugins(AutomateHeaderPlugin && Sonatype)
-  .settings(sonatypeSettings: _*)
+//  .enablePlugins(AutomateHeaderPlugin && Sonatype)
+//  .settings(sonatypeSettings: _*)
   .settings(common: _*)
   .settings(mimaSettings())
   .settings(
@@ -1237,14 +1241,16 @@ lazy val `sbt-build-tool-support` = (project in file("dev") / "build-tool-suppor
       Generators.version(version.value, (sourceManaged in Compile).value)
     }.taskValue,
     Dependencies.`build-tool-support`,
-    target := target.value / "lagom-sbt-build-tool-support"
+    target := target.value / "lagom-sbt-build-tool-support",
+    externalResolvers += "GitHub castleone Apache Maven Packages" at s"https://maven.pkg.github.com/$githubOwner/lagom",
+    publishTo := Some("GitHub castleone Apache Maven Packages" at s"https://maven.pkg.github.com/$githubOwner/lagom"),
+    credentials += Credentials("GitHub Package Registry", "maven.pkg.github.com", "bagf", "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"),
   )
 
 lazy val `sbt-plugin` = (project in file("dev") / "sbt-plugin")
   .settings(common: _*)
   .settings(mimaSettings())
   .settings(scriptedSettings: _*)
-  .disablePlugins(BintrayPlugin)
   .enablePlugins(SbtPluginPlugins, SbtPlugin)
   .settings(
     name := "lagom-sbt-plugin",
@@ -1318,10 +1324,6 @@ lazy val `sbt-plugin` = (project in file("dev") / "sbt-plugin")
 //      } else old
 //    },
 //    publishMavenStyle := isSnapshot.value,
-    externalResolvers += "GitHub castleone Apache Maven Packages" at s"https://maven.pkg.github.com/$githubOwner/lagom",
-    publishTo := Some("GitHub castleone Apache Maven Packages" at s"https://maven.pkg.github.com/$githubOwner/lagom"),
-    credentials += Credentials("GitHub Package Registry", "maven.pkg.github.com", "<user here>", "<Token here>"),
-    publishMavenStyle := true,
   )
   .dependsOn(`sbt-build-tool-support`)
 
